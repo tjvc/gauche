@@ -10,7 +10,7 @@ import (
 )
 
 func TestSetGet(t *testing.T) {
-	store := make(map[string]string)
+	store := make(store)
 	router := setupRouter(store)
 
 	w := httptest.NewRecorder()

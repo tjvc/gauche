@@ -3,7 +3,9 @@ package main
 import "io/ioutil"
 import "github.com/gin-gonic/gin"
 
-func setupRouter(store map[string]string) *gin.Engine {
+type store map[string]string
+
+func setupRouter(store store) *gin.Engine {
 	r := gin.Default()
 
 	r.PUT("/:key", func(c *gin.Context) {
@@ -24,7 +26,7 @@ func setupRouter(store map[string]string) *gin.Engine {
 }
 
 func main() {
-	store := make(map[string]string)
+	store := make(store)
 	r := setupRouter(store)
 	r.Run(":8080")
 }
