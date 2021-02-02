@@ -18,8 +18,11 @@ func setupRouter(store store) *gin.Engine {
 
 	r.GET("/:key", func(c *gin.Context) {
 		key := c.Params.ByName("key")
-		value := store[key]
-		c.String(200, value)
+		if value, present := store[key]; present {
+			c.String(200, value)
+		} else {
+			c.Status(404)
+		}
 	})
 
 	return r

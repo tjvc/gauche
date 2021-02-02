@@ -27,3 +27,14 @@ func TestSetGet(t *testing.T) {
 	assert.Equal(t, 200, w.Code)
 	assert.Equal(t, "value", w.Body.String())
 }
+
+func TestMissingKey(t *testing.T) {
+	store := make(store)
+	router := setupRouter(store)
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/key", nil)
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, 404, w.Code)
+}
