@@ -10,31 +10,29 @@ import (
 )
 
 func TestSetGet(t *testing.T) {
-	store := make(store)
-	router := setupRouter(store)
+	application := newApplication()
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("PUT", "/key", strings.NewReader("value"))
-	router.ServeHTTP(w, req)
+	application.ServeHTTP(w, req)
 
 	assert.Equal(t, 200, w.Code)
 	assert.Equal(t, "value", w.Body.String())
 
 	w = httptest.NewRecorder()
 	req, _ = http.NewRequest("GET", "/key", nil)
-	router.ServeHTTP(w, req)
+	application.ServeHTTP(w, req)
 
 	assert.Equal(t, 200, w.Code)
 	assert.Equal(t, "value", w.Body.String())
 }
 
 func TestMissingKey(t *testing.T) {
-	store := make(store)
-	router := setupRouter(store)
+	application := newApplication()
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/key", nil)
-	router.ServeHTTP(w, req)
+	application.ServeHTTP(w, req)
 
 	assert.Equal(t, 404, w.Code)
 }

@@ -1,14 +1,29 @@
 package main
 
 import "io/ioutil"
+import "net/http"
 import "github.com/gin-gonic/gin"
 
 type store map[string]string
 
-func setupRouter(store store) *gin.Engine {
-	r := gin.Default()
+type application struct {
+	store       store
+	httpHandler *gin.Engine
+}
 
-	r.PUT("/:key", func(c *gin.Context) {
+func (application *application) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	application.httpHandler.ServeHTTP(w, r)
+}
+
+func (application *application) Run() {
+	application.httpHandler.Run()
+}
+
+func newApplication() application {
+	store := make(store)
+	router := gin.Default()
+
+	router.PUT("/:key", func(c *gin.Context) {
 		key := c.Params.ByName("key")
 		b, _ := ioutil.ReadAll(c.Request.Body)
 		value := string(b)
@@ -16,7 +31,7 @@ func setupRouter(store store) *gin.Engine {
 		c.String(200, value)
 	})
 
-	r.GET("/:key", func(c *gin.Context) {
+	router.GET("/:key", func(c *gin.Context) {
 		key := c.Params.ByName("key")
 		if value, present := store[key]; present {
 			c.String(200, value)
@@ -25,11 +40,15 @@ func setupRouter(store store) *gin.Engine {
 		}
 	})
 
-	return r
+	application := application{
+		store:       store,
+		httpHandler: router,
+	}
+
+	return application
 }
 
 func main() {
-	store := make(store)
-	r := setupRouter(store)
-	r.Run(":8080")
+	application := newApplication()
+	application.Run()
 }
