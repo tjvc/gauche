@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestSetGet(t *testing.T) {
+func TestPutGet(t *testing.T) {
 	application := newApplication()
 
 	w := httptest.NewRecorder()
@@ -27,7 +27,7 @@ func TestSetGet(t *testing.T) {
 	assert.Equal(t, "value", w.Body.String())
 }
 
-func TestMissingKey(t *testing.T) {
+func TestGet404(t *testing.T) {
 	application := newApplication()
 
 	w := httptest.NewRecorder()
