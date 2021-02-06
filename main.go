@@ -1,8 +1,11 @@
 package main
 
-import "io/ioutil"
-import "net/http"
-import "github.com/gin-gonic/gin"
+import (
+	"bytes"
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+)
 
 type store map[string][]byte
 
@@ -25,7 +28,9 @@ func newApplication() application {
 
 	router.PUT("/:key", func(c *gin.Context) {
 		key := c.Params.ByName("key")
-		value, _ := ioutil.ReadAll(c.Request.Body)
+		buf := new(bytes.Buffer)
+		buf.ReadFrom(c.Request.Body)
+		value := buf.Bytes()
 		store[key] = value
 		c.Data(200, "text/plain", value)
 	})
