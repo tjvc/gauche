@@ -4,7 +4,7 @@ import "io/ioutil"
 import "net/http"
 import "github.com/gin-gonic/gin"
 
-type store map[string]string
+type store map[string][]byte
 
 type application struct {
 	store       store
@@ -25,16 +25,15 @@ func newApplication() application {
 
 	router.PUT("/:key", func(c *gin.Context) {
 		key := c.Params.ByName("key")
-		b, _ := ioutil.ReadAll(c.Request.Body)
-		value := string(b)
+		value, _ := ioutil.ReadAll(c.Request.Body)
 		store[key] = value
-		c.String(200, value)
+		c.Data(200, "text/plain", value)
 	})
 
 	router.GET("/:key", func(c *gin.Context) {
 		key := c.Params.ByName("key")
 		if value, present := store[key]; present {
-			c.String(200, value)
+			c.Data(200, "text/plain", value)
 		} else {
 			c.Status(404)
 		}
