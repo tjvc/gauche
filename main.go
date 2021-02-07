@@ -6,20 +6,23 @@ import "github.com/gin-gonic/gin"
 
 type store map[string][]byte
 
-type application struct {
+// Application wraps a data store and HTTP handler
+type Application struct {
 	store       store
 	httpHandler *gin.Engine
 }
 
-func (application *application) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (application *Application) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	application.httpHandler.ServeHTTP(w, r)
 }
 
-func (application *application) Run() {
+// Run starts the application
+func (application *Application) Run() {
 	application.httpHandler.Run()
 }
 
-func newApplication() application {
+// NewApplication returns a new Application
+func NewApplication() Application {
 	store := make(store)
 	router := gin.Default()
 
@@ -39,7 +42,7 @@ func newApplication() application {
 		}
 	})
 
-	application := application{
+	application := Application{
 		store:       store,
 		httpHandler: router,
 	}
@@ -48,6 +51,6 @@ func newApplication() application {
 }
 
 func main() {
-	application := newApplication()
+	application := NewApplication()
 	application.Run()
 }

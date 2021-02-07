@@ -10,7 +10,7 @@ import (
 )
 
 func TestPutGet(t *testing.T) {
-	application := newApplication()
+	application := NewApplication()
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("PUT", "/key", strings.NewReader("value"))
@@ -28,7 +28,7 @@ func TestPutGet(t *testing.T) {
 }
 
 func TestGet404(t *testing.T) {
-	application := newApplication()
+	application := NewApplication()
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/key", nil)
