@@ -36,3 +36,33 @@ func TestGet404(t *testing.T) {
 
 	assert.Equal(t, 404, w.Code)
 }
+
+func TestPutGetDelete(t *testing.T) {
+	application := NewApplication()
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("PUT", "/key", strings.NewReader("value"))
+	application.ServeHTTP(w, req)
+
+	assert.Equal(t, 200, w.Code)
+	assert.Equal(t, "value", w.Body.String())
+
+	w = httptest.NewRecorder()
+	req, _ = http.NewRequest("GET", "/key", nil)
+	application.ServeHTTP(w, req)
+
+	assert.Equal(t, 200, w.Code)
+	assert.Equal(t, "value", w.Body.String())
+
+	w = httptest.NewRecorder()
+	req, _ = http.NewRequest("DELETE", "/key", nil)
+	application.ServeHTTP(w, req)
+
+	assert.Equal(t, 204, w.Code)
+
+	w = httptest.NewRecorder()
+	req, _ = http.NewRequest("GET", "/key", nil)
+	application.ServeHTTP(w, req)
+
+	assert.Equal(t, 404, w.Code)
+}

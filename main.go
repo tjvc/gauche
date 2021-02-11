@@ -43,6 +43,15 @@ func getHandler(store store) func(*gin.Context) {
 	return fn
 }
 
+func deleteHandler(store store) func(*gin.Context) {
+	fn := func(c *gin.Context) {
+		key := c.Params.ByName("key")
+		delete(store, key)
+		c.Status(204)
+	}
+	return fn
+}
+
 // NewApplication returns a new Application
 func NewApplication() Application {
 	store := make(store)
@@ -50,6 +59,7 @@ func NewApplication() Application {
 
 	router.PUT("/:key", putHandler(store))
 	router.GET("/:key", getHandler(store))
+	router.DELETE("/:key", deleteHandler(store))
 
 	application := Application{
 		store:       store,
