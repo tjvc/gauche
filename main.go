@@ -21,26 +21,35 @@ func (application *Application) Run() {
 	application.httpHandler.Run()
 }
 
-// NewApplication returns a new Application
-func NewApplication() Application {
-	store := make(store)
-	router := gin.Default()
-
-	router.PUT("/:key", func(c *gin.Context) {
+func putHandler(store store) func(*gin.Context) {
+	fn := func(c *gin.Context) {
 		key := c.Params.ByName("key")
 		value, _ := ioutil.ReadAll(c.Request.Body)
 		store[key] = value
 		c.Data(200, "text/plain", value)
-	})
+	}
+	return fn
+}
 
-	router.GET("/:key", func(c *gin.Context) {
+func getHandler(store store) func(*gin.Context) {
+	fn := func(c *gin.Context) {
 		key := c.Params.ByName("key")
 		if value, present := store[key]; present {
 			c.Data(200, "text/plain", value)
 		} else {
 			c.Status(404)
 		}
-	})
+	}
+	return fn
+}
+
+// NewApplication returns a new Application
+func NewApplication() Application {
+	store := make(store)
+	router := gin.Default()
+
+	router.PUT("/:key", putHandler(store))
+	router.GET("/:key", getHandler(store))
 
 	application := Application{
 		store:       store,
