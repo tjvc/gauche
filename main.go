@@ -3,6 +3,8 @@ package main
 import "io/ioutil"
 import "net/http"
 import "github.com/gin-gonic/gin"
+import "sort"
+import "strings"
 
 type store map[string][]byte
 
@@ -49,6 +51,19 @@ func deleteHandler(store store) func(*gin.Context) {
 	}
 }
 
+func getIndexHandler(store store) func(*gin.Context) {
+	return func(c *gin.Context) {
+		keys := make([]string, len(store))
+		i := 0
+		for key := range store {
+			keys[i] = key
+			i++
+		}
+		sort.Strings(keys)
+		c.String(200, strings.Join(keys, "\n"))
+	}
+}
+
 // NewApplication returns a new Application
 func NewApplication(store store) Application {
 	router := gin.Default()
@@ -56,6 +71,7 @@ func NewApplication(store store) Application {
 	router.PUT("/:key", putHandler(store))
 	router.GET("/:key", getHandler(store))
 	router.DELETE("/:key", deleteHandler(store))
+	router.GET("/", getIndexHandler(store))
 
 	application := Application{
 		store:       store,

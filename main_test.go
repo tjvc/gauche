@@ -59,3 +59,17 @@ func TestDelete(t *testing.T) {
 	assert.Equal(t, 204, w.Code)
 	assert.NotContains(t, store, "key")
 }
+
+func TestGetIndex(t *testing.T) {
+	store := make(store)
+	store["key2"] = []byte("value2")
+	store["key1"] = []byte("value1")
+	application := NewApplication(store)
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/", nil)
+	application.ServeHTTP(w, req)
+
+	assert.Equal(t, 200, w.Code)
+	assert.Equal(t, "key1\nkey2", w.Body.String())
+}
