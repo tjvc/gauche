@@ -22,17 +22,16 @@ func (application *Application) Run() {
 }
 
 func putHandler(store store) func(*gin.Context) {
-	fn := func(c *gin.Context) {
+	return func(c *gin.Context) {
 		key := c.Params.ByName("key")
 		value, _ := ioutil.ReadAll(c.Request.Body)
 		store[key] = value
 		c.Data(200, "text/plain", value)
 	}
-	return fn
 }
 
 func getHandler(store store) func(*gin.Context) {
-	fn := func(c *gin.Context) {
+	return func(c *gin.Context) {
 		key := c.Params.ByName("key")
 		if value, present := store[key]; present {
 			c.Data(200, "text/plain", value)
@@ -40,16 +39,14 @@ func getHandler(store store) func(*gin.Context) {
 			c.Status(404)
 		}
 	}
-	return fn
 }
 
 func deleteHandler(store store) func(*gin.Context) {
-	fn := func(c *gin.Context) {
+	return func(c *gin.Context) {
 		key := c.Params.ByName("key")
 		delete(store, key)
 		c.Status(204)
 	}
-	return fn
 }
 
 // NewApplication returns a new Application
