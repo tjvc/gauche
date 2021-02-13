@@ -9,8 +9,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestPutGet(t *testing.T) {
-	application := NewApplication()
+func TestPut(t *testing.T) {
+	store := make(store)
+	application := NewApplication(store)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("PUT", "/key", strings.NewReader("value"))
@@ -18,17 +19,26 @@ func TestPutGet(t *testing.T) {
 
 	assert.Equal(t, 200, w.Code)
 	assert.Equal(t, "value", w.Body.String())
+	assert.Contains(t, store, "key")
+	assert.Equal(t, []byte("value"), store["key"])
+}
 
-	w = httptest.NewRecorder()
-	req, _ = http.NewRequest("GET", "/key", nil)
+func TestGet(t *testing.T) {
+	store := make(store)
+	store["key"] = []byte("value")
+	application := NewApplication(store)
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/key", nil)
 	application.ServeHTTP(w, req)
 
 	assert.Equal(t, 200, w.Code)
 	assert.Equal(t, "value", w.Body.String())
 }
 
-func TestGet404(t *testing.T) {
-	application := NewApplication()
+func TestGetMissingKey(t *testing.T) {
+	store := make(store)
+	application := NewApplication(store)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/key", nil)
@@ -37,32 +47,15 @@ func TestGet404(t *testing.T) {
 	assert.Equal(t, 404, w.Code)
 }
 
-func TestPutGetDelete(t *testing.T) {
-	application := NewApplication()
+func TestDelete(t *testing.T) {
+	store := make(store)
+	store["key"] = []byte("value")
+	application := NewApplication(store)
 
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("PUT", "/key", strings.NewReader("value"))
-	application.ServeHTTP(w, req)
-
-	assert.Equal(t, 200, w.Code)
-	assert.Equal(t, "value", w.Body.String())
-
-	w = httptest.NewRecorder()
-	req, _ = http.NewRequest("GET", "/key", nil)
-	application.ServeHTTP(w, req)
-
-	assert.Equal(t, 200, w.Code)
-	assert.Equal(t, "value", w.Body.String())
-
-	w = httptest.NewRecorder()
-	req, _ = http.NewRequest("DELETE", "/key", nil)
+	req, _ := http.NewRequest("DELETE", "/key", nil)
 	application.ServeHTTP(w, req)
 
 	assert.Equal(t, 204, w.Code)
-
-	w = httptest.NewRecorder()
-	req, _ = http.NewRequest("GET", "/key", nil)
-	application.ServeHTTP(w, req)
-
-	assert.Equal(t, 404, w.Code)
+	assert.NotContains(t, store, "key")
 }
