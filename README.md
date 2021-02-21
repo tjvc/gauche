@@ -6,6 +6,8 @@
 
 Gauche ("Go cache") is a simple HTTP in-memory key-value store.
 
+Roadmap: https://www.pivotaltracker.com/n/projects/2487327
+
 ## Usage
 
 ### Compile
