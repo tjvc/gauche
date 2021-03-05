@@ -11,7 +11,7 @@ import (
 
 func TestPut(t *testing.T) {
 	store := make(store)
-	application := NewApplication(store)
+	application := NewApplication(&store)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("PUT", "/key", strings.NewReader("value"))
@@ -26,7 +26,7 @@ func TestPut(t *testing.T) {
 func TestGet(t *testing.T) {
 	store := make(store)
 	store["key"] = []byte("value")
-	application := NewApplication(store)
+	application := NewApplication(&store)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/key", nil)
@@ -38,7 +38,7 @@ func TestGet(t *testing.T) {
 
 func TestGetMissingKey(t *testing.T) {
 	store := make(store)
-	application := NewApplication(store)
+	application := NewApplication(&store)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/key", nil)
@@ -50,7 +50,7 @@ func TestGetMissingKey(t *testing.T) {
 func TestDelete(t *testing.T) {
 	store := make(store)
 	store["key"] = []byte("value")
-	application := NewApplication(store)
+	application := NewApplication(&store)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("DELETE", "/key", nil)
@@ -64,7 +64,7 @@ func TestGetIndex(t *testing.T) {
 	store := make(store)
 	store["key2"] = []byte("value2")
 	store["key1"] = []byte("value1")
-	application := NewApplication(store)
+	application := NewApplication(&store)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/", nil)
