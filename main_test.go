@@ -10,7 +10,9 @@ import (
 )
 
 func TestPut(t *testing.T) {
-	store := make(store)
+	store := store{
+		store: make(map[string][]byte),
+	}
 	application := NewApplication(&store)
 
 	w := httptest.NewRecorder()
@@ -19,13 +21,15 @@ func TestPut(t *testing.T) {
 
 	assert.Equal(t, 200, w.Code)
 	assert.Equal(t, "value", w.Body.String())
-	assert.Contains(t, store, "key")
-	assert.Equal(t, []byte("value"), store["key"])
+	assert.Contains(t, store.store, "key")
+	assert.Equal(t, []byte("value"), store.store["key"])
 }
 
 func TestGet(t *testing.T) {
-	store := make(store)
-	store["key"] = []byte("value")
+	store := store{
+		store: make(map[string][]byte),
+	}
+	store.store["key"] = []byte("value")
 	application := NewApplication(&store)
 
 	w := httptest.NewRecorder()
@@ -37,7 +41,9 @@ func TestGet(t *testing.T) {
 }
 
 func TestGetMissingKey(t *testing.T) {
-	store := make(store)
+	store := store{
+		store: make(map[string][]byte),
+	}
 	application := NewApplication(&store)
 
 	w := httptest.NewRecorder()
@@ -48,8 +54,10 @@ func TestGetMissingKey(t *testing.T) {
 }
 
 func TestDelete(t *testing.T) {
-	store := make(store)
-	store["key"] = []byte("value")
+	store := store{
+		store: make(map[string][]byte),
+	}
+	store.store["key"] = []byte("value")
 	application := NewApplication(&store)
 
 	w := httptest.NewRecorder()
@@ -57,13 +65,15 @@ func TestDelete(t *testing.T) {
 	application.ServeHTTP(w, req)
 
 	assert.Equal(t, 204, w.Code)
-	assert.NotContains(t, store, "key")
+	assert.NotContains(t, store.store, "key")
 }
 
 func TestGetIndex(t *testing.T) {
-	store := make(store)
-	store["key2"] = []byte("value2")
-	store["key1"] = []byte("value1")
+	store := store{
+		store: make(map[string][]byte),
+	}
+	store.store["key2"] = []byte("value2")
+	store.store["key1"] = []byte("value1")
 	application := NewApplication(&store)
 
 	w := httptest.NewRecorder()

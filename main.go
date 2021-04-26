@@ -5,12 +5,13 @@ import (
 	"net/http"
 	"sort"
 	"strings"
-	"sync"
 
 	"github.com/gin-gonic/gin"
 )
 
-type store map[string][]byte
+type store struct {
+	store map[string][]byte
+}
 
 // Application wraps a data store and HTTP handler
 type Application struct {
@@ -31,7 +32,7 @@ func putHandler(store *store) func(*gin.Context) {
 	return func(c *gin.Context) {
 		key := c.Params.ByName("key")
 		value, _ := ioutil.ReadAll(c.Request.Body)
-		(*store)[key] = value
+		store.store[key] = value
 		c.Data(200, "text/plain", value)
 	}
 }
@@ -39,7 +40,7 @@ func putHandler(store *store) func(*gin.Context) {
 func getHandler(store *store) func(*gin.Context) {
 	return func(c *gin.Context) {
 		key := c.Params.ByName("key")
-		if value, present := (*store)[key]; present {
+		if value, present := store.store[key]; present {
 			c.Data(200, "text/plain", value)
 		} else {
 			c.Status(404)
@@ -50,16 +51,16 @@ func getHandler(store *store) func(*gin.Context) {
 func deleteHandler(store *store) func(*gin.Context) {
 	return func(c *gin.Context) {
 		key := c.Params.ByName("key")
-		delete(*store, key)
+		delete(store.store, key)
 		c.Status(204)
 	}
 }
 
 func getIndexHandler(store *store) func(*gin.Context) {
 	return func(c *gin.Context) {
-		keys := make([]string, len(*store))
+		keys := make([]string, len(store.store))
 		i := 0
-		for key := range *store {
+		for key := range store.store {
 			keys[i] = key
 			i++
 		}
@@ -86,7 +87,9 @@ func NewApplication(store *store) Application {
 }
 
 func main() {
-	store := make(store)
+	store := store{
+		store: make(map[string][]byte),
+	}
 	application := NewApplication(&store)
 	application.Run()
 }
