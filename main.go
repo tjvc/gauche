@@ -13,18 +13,16 @@ type store struct {
 	store map[string][]byte
 }
 
-// Application wraps a data store and HTTP handler
-type Application struct {
+type application struct {
 	store       *store
 	httpHandler *gin.Engine
 }
 
-func (application *Application) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (application *application) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	application.httpHandler.ServeHTTP(w, r)
 }
 
-// Run starts the application
-func (application *Application) Run() {
+func (application *application) run() {
 	application.httpHandler.Run()
 }
 
@@ -69,8 +67,7 @@ func getIndexHandler(store *store) func(*gin.Context) {
 	}
 }
 
-// NewApplication returns a new Application
-func NewApplication(store *store) Application {
+func newApplication(store *store) application {
 	router := gin.Default()
 
 	router.PUT("/:key", putHandler(store))
@@ -78,7 +75,7 @@ func NewApplication(store *store) Application {
 	router.DELETE("/:key", deleteHandler(store))
 	router.GET("/", getIndexHandler(store))
 
-	application := Application{
+	application := application{
 		store:       store,
 		httpHandler: router,
 	}
@@ -90,6 +87,6 @@ func main() {
 	store := store{
 		store: make(map[string][]byte),
 	}
-	application := NewApplication(&store)
-	application.Run()
+	application := newApplication(&store)
+	application.run()
 }
