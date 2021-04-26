@@ -1,10 +1,14 @@
 package main
 
-import "io/ioutil"
-import "net/http"
-import "github.com/gin-gonic/gin"
-import "sort"
-import "strings"
+import (
+	"io/ioutil"
+	"net/http"
+	"sort"
+	"strings"
+	"sync"
+
+	"github.com/gin-gonic/gin"
+)
 
 type store map[string][]byte
 
