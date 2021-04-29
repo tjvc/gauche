@@ -5,11 +5,13 @@ import (
 	"net/http"
 	"sort"
 	"strings"
+	"sync"
 
 	"github.com/gin-gonic/gin"
 )
 
 type store struct {
+	sync.RWMutex
 	store map[string][]byte
 }
 
@@ -30,6 +32,8 @@ func putHandler(store *store) func(*gin.Context) {
 	return func(c *gin.Context) {
 		key := c.Params.ByName("key")
 		value, _ := ioutil.ReadAll(c.Request.Body)
+		store.Lock()
+		defer store.Unlock()
 		store.store[key] = value
 		c.Data(200, "text/plain", value)
 	}
@@ -38,6 +42,8 @@ func putHandler(store *store) func(*gin.Context) {
 func getHandler(store *store) func(*gin.Context) {
 	return func(c *gin.Context) {
 		key := c.Params.ByName("key")
+		store.RLock()
+		defer store.RUnlock()
 		if value, present := store.store[key]; present {
 			c.Data(200, "text/plain", value)
 		} else {
@@ -49,6 +55,8 @@ func getHandler(store *store) func(*gin.Context) {
 func deleteHandler(store *store) func(*gin.Context) {
 	return func(c *gin.Context) {
 		key := c.Params.ByName("key")
+		store.Lock()
+		defer store.Unlock()
 		delete(store.store, key)
 		c.Status(204)
 	}
@@ -58,6 +66,8 @@ func getIndexHandler(store *store) func(*gin.Context) {
 	return func(c *gin.Context) {
 		keys := make([]string, len(store.store))
 		i := 0
+		store.RLock()
+		defer store.RUnlock()
 		for key := range store.store {
 			keys[i] = key
 			i++
