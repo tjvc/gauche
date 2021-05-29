@@ -1,5 +1,7 @@
 # gauche
 
+[![tjvc](https://circleci.com/gh/tjvc/gauche.svg?style=shield)](https://circleci.com/gh/tjvc/gauche)
+
 > gauche
 >
 > 1 b : crudely made or done
