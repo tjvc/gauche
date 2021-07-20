@@ -5,15 +5,9 @@ import (
 	"net/http"
 	"sort"
 	"strings"
-	"sync"
 
 	"github.com/gin-gonic/gin"
 )
-
-type store struct {
-	sync.RWMutex
-	store map[string][]byte
-}
 
 type application struct {
 	store       *store
