@@ -10,9 +10,7 @@ import (
 )
 
 func TestPut(t *testing.T) {
-	store := store{
-		store: make(map[string][]byte),
-	}
+	store := newStore()
 	application := newApplication(&store)
 
 	w := httptest.NewRecorder()
@@ -26,9 +24,7 @@ func TestPut(t *testing.T) {
 }
 
 func TestGet(t *testing.T) {
-	store := store{
-		store: make(map[string][]byte),
-	}
+	store := newStore()
 	store.store["key"] = []byte("value")
 	application := newApplication(&store)
 
@@ -41,9 +37,7 @@ func TestGet(t *testing.T) {
 }
 
 func TestGetMissingKey(t *testing.T) {
-	store := store{
-		store: make(map[string][]byte),
-	}
+	store := newStore()
 	application := newApplication(&store)
 
 	w := httptest.NewRecorder()
@@ -54,9 +48,7 @@ func TestGetMissingKey(t *testing.T) {
 }
 
 func TestDelete(t *testing.T) {
-	store := store{
-		store: make(map[string][]byte),
-	}
+	store := newStore()
 	store.store["key"] = []byte("value")
 	application := newApplication(&store)
 
@@ -69,9 +61,7 @@ func TestDelete(t *testing.T) {
 }
 
 func TestGetIndex(t *testing.T) {
-	store := store{
-		store: make(map[string][]byte),
-	}
+	store := newStore()
 	store.store["key2"] = []byte("value2")
 	store.store["key1"] = []byte("value1")
 	application := newApplication(&store)

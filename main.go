@@ -88,9 +88,7 @@ func newApplication(store *store) application {
 }
 
 func main() {
-	store := store{
-		store: make(map[string][]byte),
-	}
+	store := newStore()
 	application := newApplication(&store)
 	application.run()
 }
