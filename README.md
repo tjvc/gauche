@@ -12,16 +12,19 @@ Roadmap: https://www.pivotaltracker.com/n/projects/2487327
 
 ## Usage
 
-### Compile
+### Build from source
 
 ```
+go mod download
 go build
-```
-
-### Run
-
-```
 ./gauche
+```
+
+### Docker
+
+```
+docker build -t gauche .
+docker run -p 8080:8080 gauche
 ```
 
 ### PUT key
