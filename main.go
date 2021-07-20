@@ -3,7 +3,6 @@ package main
 import (
 	"io/ioutil"
 	"net/http"
-	"sort"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -26,9 +25,7 @@ func putHandler(store *store) func(*gin.Context) {
 	return func(c *gin.Context) {
 		key := c.Params.ByName("key")
 		value, _ := ioutil.ReadAll(c.Request.Body)
-		store.Lock()
-		defer store.Unlock()
-		store.store[key] = value
+		store.set(key, value)
 		c.Data(200, "text/plain", value)
 	}
 }
@@ -36,9 +33,7 @@ func putHandler(store *store) func(*gin.Context) {
 func getHandler(store *store) func(*gin.Context) {
 	return func(c *gin.Context) {
 		key := c.Params.ByName("key")
-		store.RLock()
-		defer store.RUnlock()
-		if value, present := store.store[key]; present {
+		if value, present := store.get(key); present {
 			c.Data(200, "text/plain", value)
 		} else {
 			c.Status(404)
@@ -49,24 +44,14 @@ func getHandler(store *store) func(*gin.Context) {
 func deleteHandler(store *store) func(*gin.Context) {
 	return func(c *gin.Context) {
 		key := c.Params.ByName("key")
-		store.Lock()
-		defer store.Unlock()
-		delete(store.store, key)
+		store.delete(key)
 		c.Status(204)
 	}
 }
 
 func getIndexHandler(store *store) func(*gin.Context) {
 	return func(c *gin.Context) {
-		keys := make([]string, len(store.store))
-		i := 0
-		store.RLock()
-		defer store.RUnlock()
-		for key := range store.store {
-			keys[i] = key
-			i++
-		}
-		sort.Strings(keys)
+		keys := store.keys()
 		c.String(200, strings.Join(keys, "\n"))
 	}
 }
