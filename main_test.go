@@ -25,7 +25,7 @@ func TestPut(t *testing.T) {
 
 func TestGet(t *testing.T) {
 	store := newStore()
-	store.store["key"] = []byte("value")
+	store.set("key", []byte("value"))
 	application := newApplication(&store)
 
 	w := httptest.NewRecorder()
@@ -49,7 +49,7 @@ func TestGetMissingKey(t *testing.T) {
 
 func TestDelete(t *testing.T) {
 	store := newStore()
-	store.store["key"] = []byte("value")
+	store.set("key", []byte("value"))
 	application := newApplication(&store)
 
 	w := httptest.NewRecorder()
@@ -62,8 +62,8 @@ func TestDelete(t *testing.T) {
 
 func TestGetIndex(t *testing.T) {
 	store := newStore()
-	store.store["key2"] = []byte("value2")
-	store.store["key1"] = []byte("value1")
+	store.set("key2", []byte("value2"))
+	store.set("key1", []byte("value1"))
 	application := newApplication(&store)
 
 	w := httptest.NewRecorder()
