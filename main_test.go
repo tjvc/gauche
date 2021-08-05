@@ -7,11 +7,12 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap"
 )
 
 func TestPut(t *testing.T) {
 	store := newStore()
-	application := newApplication(&store)
+	application := buildApplication(&store)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("PUT", "/key", strings.NewReader("value"))
@@ -26,7 +27,7 @@ func TestPut(t *testing.T) {
 func TestGet(t *testing.T) {
 	store := newStore()
 	store.set("key", []byte("value"))
-	application := newApplication(&store)
+	application := buildApplication(&store)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/key", nil)
@@ -38,7 +39,7 @@ func TestGet(t *testing.T) {
 
 func TestGetMissingKey(t *testing.T) {
 	store := newStore()
-	application := newApplication(&store)
+	application := buildApplication(&store)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/key", nil)
@@ -50,7 +51,7 @@ func TestGetMissingKey(t *testing.T) {
 func TestDelete(t *testing.T) {
 	store := newStore()
 	store.set("key", []byte("value"))
-	application := newApplication(&store)
+	application := buildApplication(&store)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("DELETE", "/key", nil)
@@ -64,7 +65,7 @@ func TestGetIndex(t *testing.T) {
 	store := newStore()
 	store.set("key2", []byte("value2"))
 	store.set("key1", []byte("value1"))
-	application := newApplication(&store)
+	application := buildApplication(&store)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/", nil)
@@ -72,4 +73,9 @@ func TestGetIndex(t *testing.T) {
 
 	assert.Equal(t, 200, w.Code)
 	assert.Equal(t, "key1\nkey2", w.Body.String())
+}
+
+func buildApplication(store *store) application {
+	logger := zap.NewNop()
+	return newApplication(store, logger)
 }
