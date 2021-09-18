@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.uber.org/zap"
 )
 
 func TestPut(t *testing.T) {
@@ -76,6 +75,11 @@ func TestGetIndex(t *testing.T) {
 }
 
 func buildApplication(store *store) application {
-	logger := zap.NewNop()
+	logger := nullLogger{}
 	return newApplication(store, logger)
+}
+
+type nullLogger struct{}
+
+func (nullLogger) write(logEntry) {
 }

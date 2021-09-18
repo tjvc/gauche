@@ -4,11 +4,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
-	"time"
 
-	ginzap "github.com/gin-contrib/zap"
 	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
 )
 
 type application struct {
@@ -59,12 +56,11 @@ func getIndexHandler(store *store) func(*gin.Context) {
 	}
 }
 
-func newApplication(store *store, logger *zap.Logger) application {
+func newApplication(store *store, logger logger) application {
 	gin.SetMode("release")
 	router := gin.New()
 
-	router.Use(ginzap.Ginzap(logger, time.RFC3339, true))
-	router.Use(ginzap.RecoveryWithZap(logger, false))
+	router.Use(loggingMiddleware(logger))
 
 	router.PUT("/:key", putHandler(store))
 	router.GET("/:key", getHandler(store))
@@ -81,7 +77,7 @@ func newApplication(store *store, logger *zap.Logger) application {
 
 func main() {
 	store := newStore()
-	logger, _ := zap.NewProduction()
+	logger := jsonLogger{}
 	application := newApplication(&store, logger)
 	application.run()
 }
