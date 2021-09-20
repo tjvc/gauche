@@ -56,11 +56,21 @@ func getIndexHandler(store *store) func(*gin.Context) {
 	}
 }
 
+func recoveryMiddleware(c *gin.Context) {
+	defer func() {
+		if err := recover(); err != nil {
+			c.AbortWithStatus(500)
+		}
+	}()
+	c.Next()
+}
+
 func newApplication(store *store, logger logger) application {
 	gin.SetMode("release")
 	router := gin.New()
 
 	router.Use(loggingMiddleware(logger))
+	router.Use(recoveryMiddleware)
 
 	router.PUT("/:key", putHandler(store))
 	router.GET("/:key", getHandler(store))
