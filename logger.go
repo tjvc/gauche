@@ -3,9 +3,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"time"
-
-	"github.com/gin-gonic/gin"
 )
 
 type logEntry struct {
@@ -39,24 +38,35 @@ func (logger jsonLogger) write(logEntry logEntry) {
 		Latency:    logEntry.latency.Microseconds(),
 	}
 
-	marshalledJsonLogEntry, _ := json.Marshal(jsonLogEntry)
-	fmt.Println(string(marshalledJsonLogEntry))
+	marshalledJSONLogEntry, _ := json.Marshal(jsonLogEntry)
+	fmt.Println(string(marshalledJSONLogEntry))
 }
 
-func loggingMiddleware(logger logger) func(c *gin.Context) {
-	return func(c *gin.Context) {
+type responseWriterWithStatus struct {
+	http.ResponseWriter
+	Status int
+}
+
+func (w *responseWriterWithStatus) WriteHeader(status int) {
+	w.Status = status
+	w.ResponseWriter.WriteHeader(status)
+}
+
+func loggingMiddleware(logger logger, next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
-		c.Next()
+		writerWithStatus := &responseWriterWithStatus{ResponseWriter: w}
+		next.ServeHTTP(writerWithStatus, r)
 		end := time.Now()
 
 		logEntry := logEntry{
 			timestamp: end,
-			status:    c.Writer.Status(),
-			method:    c.Request.Method,
-			path:      c.Request.URL.Path,
+			status:    writerWithStatus.Status,
+			method:    r.Method,
+			path:      r.URL.Path,
 			latency:   end.Sub(start),
 		}
 
 		logger.write(logEntry)
-	}
+	})
 }

@@ -1,86 +1,96 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"net/http"
+	"regexp"
 	"strings"
-
-	"github.com/gin-gonic/gin"
 )
 
 type application struct {
-	store       *store
-	httpHandler *gin.Engine
-}
-
-func (application *application) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	application.httpHandler.ServeHTTP(w, r)
+	store  *store
+	logger logger
+	mux    *http.ServeMux
 }
 
 func (application *application) run() {
-	application.httpHandler.Run()
+	http.ListenAndServe(":8080", application.mux)
 }
 
-func putHandler(store *store) func(*gin.Context) {
-	return func(c *gin.Context) {
-		key := c.Params.ByName("key")
-		value, _ := ioutil.ReadAll(c.Request.Body)
-		store.set(key, value)
-		c.Data(200, "text/plain", value)
+func putHandler(w http.ResponseWriter, key string, r *http.Request, store *store) {
+	value, _ := ioutil.ReadAll(r.Body)
+	store.set(key, value)
+	w.WriteHeader(http.StatusOK)
+	w.Write(value)
+}
+
+func getHandler(w http.ResponseWriter, key string, store *store) {
+	if value, present := store.get(key); present {
+		w.WriteHeader(http.StatusOK)
+		w.Write(value)
+	} else {
+		w.WriteHeader(http.StatusNotFound)
 	}
 }
 
-func getHandler(store *store) func(*gin.Context) {
-	return func(c *gin.Context) {
-		key := c.Params.ByName("key")
-		if value, present := store.get(key); present {
-			c.Data(200, "text/plain", value)
-		} else {
-			c.Status(404)
+func deleteHandler(w http.ResponseWriter, key string, store *store) {
+	store.delete(key)
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func getIndexHandler(w http.ResponseWriter, store *store) {
+	keys := store.keys()
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprint(w, strings.Join(keys, "\n"))
+}
+
+func recoveryMiddleware(handler http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer func() {
+			if err := recover(); err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+			}
+		}()
+
+		handler.ServeHTTP(w, r)
+	})
+}
+
+func (application application) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodGet && r.URL.Path == "/" {
+		getIndexHandler(w, application.store)
+		return
+	}
+
+	re := regexp.MustCompile(`^/([^/]+)$`)
+	match := re.FindStringSubmatch(r.URL.Path)
+
+	if match != nil {
+		switch r.Method {
+		case http.MethodGet:
+			getHandler(w, match[1], application.store)
+		case http.MethodPut:
+			putHandler(w, match[1], r, application.store)
+		case http.MethodDelete:
+			deleteHandler(w, match[1], application.store)
 		}
+		return
 	}
-}
 
-func deleteHandler(store *store) func(*gin.Context) {
-	return func(c *gin.Context) {
-		key := c.Params.ByName("key")
-		store.delete(key)
-		c.Status(204)
-	}
-}
-
-func getIndexHandler(store *store) func(*gin.Context) {
-	return func(c *gin.Context) {
-		keys := store.keys()
-		c.String(200, strings.Join(keys, "\n"))
-	}
-}
-
-func recoveryMiddleware(c *gin.Context) {
-	defer func() {
-		if err := recover(); err != nil {
-			c.AbortWithStatus(500)
-		}
-	}()
-	c.Next()
+	w.WriteHeader(http.StatusNotFound)
 }
 
 func newApplication(store *store, logger logger) application {
-	gin.SetMode("release")
-	router := gin.New()
-
-	router.Use(loggingMiddleware(logger))
-	router.Use(recoveryMiddleware)
-
-	router.PUT("/:key", putHandler(store))
-	router.GET("/:key", getHandler(store))
-	router.DELETE("/:key", deleteHandler(store))
-	router.GET("/", getIndexHandler(store))
+	mux := http.NewServeMux()
 
 	application := application{
-		store:       store,
-		httpHandler: router,
+		store:  store,
+		logger: logger,
+		mux:    mux,
 	}
+
+	mux.Handle("/", loggingMiddleware(logger, recoveryMiddleware(application)))
 
 	return application
 }
