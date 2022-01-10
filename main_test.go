@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -13,12 +14,16 @@ func TestPut(t *testing.T) {
 	store := newStore()
 	application := buildApplication(&store)
 
-	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("PUT", "/key", strings.NewReader("value"))
-	application.ServeHTTP(w, req)
+	server := httptest.NewServer(application.httpHandler)
+	client := &http.Client{}
+	defer server.Close()
 
-	assert.Equal(t, 200, w.Code)
-	assert.Equal(t, "value", w.Body.String())
+	req, _ := http.NewRequest("PUT", server.URL+"/key", strings.NewReader("value"))
+	res, _ := client.Do(req)
+	body, _ := io.ReadAll(res.Body)
+
+	assert.Equal(t, http.StatusOK, res.StatusCode)
+	assert.Equal(t, "value", string(body))
 	assert.Contains(t, store.store, "key")
 	assert.Equal(t, []byte("value"), store.store["key"])
 }
@@ -28,12 +33,14 @@ func TestGet(t *testing.T) {
 	store.set("key", []byte("value"))
 	application := buildApplication(&store)
 
-	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/key", nil)
-	application.ServeHTTP(w, req)
+	server := httptest.NewServer(application.httpHandler)
+	defer server.Close()
 
-	assert.Equal(t, 200, w.Code)
-	assert.Equal(t, "value", w.Body.String())
+	res, _ := http.Get(server.URL + "/key")
+	body, _ := io.ReadAll(res.Body)
+
+	assert.Equal(t, http.StatusOK, res.StatusCode)
+	assert.Equal(t, "value", string(body))
 }
 
 func TestGetMissingKey(t *testing.T) {
