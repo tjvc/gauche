@@ -74,6 +74,28 @@ func TestGetIndex(t *testing.T) {
 	assert.Equal(t, "key1\nkey2", w.Body.String())
 }
 
+func TestInvalidMethod(t *testing.T) {
+	store := newStore()
+	application := buildApplication(&store)
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("POST", "/key", nil)
+	application.ServeHTTP(w, req)
+
+	assert.Equal(t, 405, w.Code)
+}
+
+func TestPutMissingKey(t *testing.T) {
+	store := newStore()
+	application := buildApplication(&store)
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("PUT", "/", nil)
+	application.ServeHTTP(w, req)
+
+	assert.Equal(t, 405, w.Code)
+}
+
 func buildApplication(store *store) application {
 	logger := nullLogger{}
 	return newApplication(store, logger)

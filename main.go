@@ -58,8 +58,13 @@ func recoveryMiddleware(handler http.Handler) http.Handler {
 }
 
 func (application application) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if r.Method == http.MethodGet && r.URL.Path == "/" {
-		getIndexHandler(w, application.store)
+	if r.URL.Path == "/" {
+		if r.Method == http.MethodGet {
+			getIndexHandler(w, application.store)
+			return
+		}
+
+		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
 	}
 
@@ -74,11 +79,10 @@ func (application application) ServeHTTP(w http.ResponseWriter, r *http.Request)
 			putHandler(w, match[1], r, application.store)
 		case http.MethodDelete:
 			deleteHandler(w, match[1], application.store)
+		default:
+			w.WriteHeader(http.StatusMethodNotAllowed)
 		}
-		return
 	}
-
-	w.WriteHeader(http.StatusNotFound)
 }
 
 func newApplication(store *store, logger logger) application {
