@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"regexp"
 	"strings"
 )
 
@@ -68,20 +67,17 @@ func (application application) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	re := regexp.MustCompile(`^/([^/]+)$`)
-	match := re.FindStringSubmatch(r.URL.Path)
+	key := r.URL.Path[1:]
 
-	if match != nil {
-		switch r.Method {
-		case http.MethodGet:
-			getHandler(w, match[1], application.store)
-		case http.MethodPut:
-			putHandler(w, match[1], r, application.store)
-		case http.MethodDelete:
-			deleteHandler(w, match[1], application.store)
-		default:
-			w.WriteHeader(http.StatusMethodNotAllowed)
-		}
+	switch r.Method {
+	case http.MethodGet:
+		getHandler(w, key, application.store)
+	case http.MethodPut:
+		putHandler(w, key, r, application.store)
+	case http.MethodDelete:
+		deleteHandler(w, key, application.store)
+	default:
+		w.WriteHeader(http.StatusMethodNotAllowed)
 	}
 }
 
