@@ -10,11 +10,6 @@ import (
 type application struct {
 	store  *store
 	logger logger
-	mux    *http.ServeMux
-}
-
-func (application *application) run() {
-	http.ListenAndServe(":8080", application.mux)
 }
 
 func putHandler(w http.ResponseWriter, key string, r *http.Request, store *store) {
@@ -56,48 +51,45 @@ func recoveryMiddleware(handler http.Handler) http.Handler {
 	})
 }
 
-func (application application) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path == "/" {
-		if r.Method == http.MethodGet {
-			getIndexHandler(w, application.store)
+func handler(application application) http.Handler {
+	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/" {
+			if r.Method == http.MethodGet {
+				getIndexHandler(w, application.store)
+				return
+			}
+
+			w.WriteHeader(http.StatusMethodNotAllowed)
 			return
 		}
 
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		return
-	}
+		key := r.URL.Path[1:]
 
-	key := r.URL.Path[1:]
+		switch r.Method {
+		case http.MethodGet:
+			getHandler(w, key, application.store)
+		case http.MethodPut:
+			putHandler(w, key, r, application.store)
+		case http.MethodDelete:
+			deleteHandler(w, key, application.store)
+		default:
+			w.WriteHeader(http.StatusMethodNotAllowed)
+		}
+	})
 
-	switch r.Method {
-	case http.MethodGet:
-		getHandler(w, key, application.store)
-	case http.MethodPut:
-		putHandler(w, key, r, application.store)
-	case http.MethodDelete:
-		deleteHandler(w, key, application.store)
-	default:
-		w.WriteHeader(http.StatusMethodNotAllowed)
-	}
-}
-
-func newApplication(store *store, logger logger) application {
 	mux := http.NewServeMux()
-
-	application := application{
-		store:  store,
-		logger: logger,
-		mux:    mux,
-	}
-
-	mux.Handle("/", loggingMiddleware(logger, recoveryMiddleware(application)))
-
-	return application
+	mux.Handle("/", loggingMiddleware(application.logger, recoveryMiddleware(h)))
+	return mux
 }
 
 func main() {
 	store := newStore()
 	logger := jsonLogger{}
-	application := newApplication(&store, logger)
-	application.run()
+
+	application := application{
+		store:  &store,
+		logger: logger,
+	}
+
+	http.ListenAndServe(":8080", handler(application))
 }

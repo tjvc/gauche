@@ -111,13 +111,17 @@ func TestPutMissingKey(t *testing.T) {
 
 func buildServer(store *store) *httptest.Server {
 	application := buildApplication(store)
-	server := httptest.NewServer(application.mux)
+	server := httptest.NewServer(handler(application))
 	return server
 }
 
 func buildApplication(store *store) application {
 	logger := nullLogger{}
-	return newApplication(store, logger)
+
+	return application{
+		store:  store,
+		logger: logger,
+	}
 }
 
 type nullLogger struct{}
