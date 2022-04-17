@@ -1,4 +1,4 @@
-module gauche
+module github.com/tjvc/gauche
 
 go 1.16
 
