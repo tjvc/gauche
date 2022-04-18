@@ -9,10 +9,12 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/tjvc/gauche/internal/logging"
+	"github.com/tjvc/gauche/internal/store"
 )
 
 func TestPut(t *testing.T) {
-	store := newStore()
+	store := store.New()
 	server := buildServer(&store)
 	defer server.Close()
 	url := fmt.Sprintf("%s/key", server.URL)
@@ -24,13 +26,13 @@ func TestPut(t *testing.T) {
 	buf := new(strings.Builder)
 	io.Copy(buf, response.Body)
 	assert.Equal(t, "value", buf.String())
-	assert.Contains(t, store.store, "key")
-	assert.Equal(t, []byte("value"), store.store["key"])
+	value, _ := store.Get("key")
+	assert.Equal(t, []byte("value"), value)
 }
 
 func TestGet(t *testing.T) {
-	store := newStore()
-	store.set("key", []byte("value"))
+	store := store.New()
+	store.Set("key", []byte("value"))
 	server := buildServer(&store)
 	defer server.Close()
 	url := fmt.Sprintf("%s/key", server.URL)
@@ -45,7 +47,7 @@ func TestGet(t *testing.T) {
 }
 
 func TestGetMissingKey(t *testing.T) {
-	store := newStore()
+	store := store.New()
 	server := buildServer(&store)
 	defer server.Close()
 	url := fmt.Sprintf("%s/key", server.URL)
@@ -57,8 +59,8 @@ func TestGetMissingKey(t *testing.T) {
 }
 
 func TestDelete(t *testing.T) {
-	store := newStore()
-	store.set("key", []byte("value"))
+	store := store.New()
+	store.Set("key", []byte("value"))
 	server := buildServer(&store)
 	defer server.Close()
 	url := fmt.Sprintf("%s/key", server.URL)
@@ -67,13 +69,14 @@ func TestDelete(t *testing.T) {
 	response, _ := http.DefaultClient.Do(req)
 
 	assert.Equal(t, 204, response.StatusCode)
-	assert.NotContains(t, store.store, "key")
+	_, present := store.Get("key")
+	assert.False(t, present)
 }
 
 func TestGetIndex(t *testing.T) {
-	store := newStore()
-	store.set("key2", []byte("value2"))
-	store.set("key1", []byte("value1"))
+	store := store.New()
+	store.Set("key2", []byte("value2"))
+	store.Set("key1", []byte("value1"))
 	server := buildServer(&store)
 	defer server.Close()
 	req, _ := http.NewRequest("GET", server.URL, nil)
@@ -87,7 +90,7 @@ func TestGetIndex(t *testing.T) {
 }
 
 func TestInvalidMethod(t *testing.T) {
-	store := newStore()
+	store := store.New()
 	server := buildServer(&store)
 	defer server.Close()
 	url := fmt.Sprintf("%s/key", server.URL)
@@ -99,7 +102,7 @@ func TestInvalidMethod(t *testing.T) {
 }
 
 func TestPutMissingKey(t *testing.T) {
-	store := newStore()
+	store := store.New()
 	server := buildServer(&store)
 	defer server.Close()
 	req, _ := http.NewRequest("PUT", server.URL, nil)
@@ -109,13 +112,13 @@ func TestPutMissingKey(t *testing.T) {
 	assert.Equal(t, 405, response.StatusCode)
 }
 
-func buildServer(store *store) *httptest.Server {
+func buildServer(store *store.Store) *httptest.Server {
 	application := buildApplication(store)
-	server := httptest.NewServer(handler(application))
+	server := httptest.NewServer(mainHandler(application))
 	return server
 }
 
-func buildApplication(store *store) application {
+func buildApplication(store *store.Store) application {
 	logger := nullLogger{}
 
 	return application{
@@ -126,5 +129,5 @@ func buildApplication(store *store) application {
 
 type nullLogger struct{}
 
-func (nullLogger) write(logEntry) {
+func (nullLogger) Write(logging.LogEntry) {
 }

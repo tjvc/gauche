@@ -1,41 +1,41 @@
-package main
+package store
 
 import (
 	"sort"
 	"sync"
 )
 
-type store struct {
+type Store struct {
 	sync.RWMutex
 	store map[string][]byte
 }
 
-func newStore() store {
-	return store{
+func New() Store {
+	return Store{
 		store: make(map[string][]byte),
 	}
 }
 
-func (store *store) get(key string) ([]byte, bool) {
+func (store *Store) Get(key string) ([]byte, bool) {
 	store.RLock()
 	defer store.RUnlock()
 	value, present := store.store[key]
 	return value, present
 }
 
-func (store *store) set(key string, value []byte) {
+func (store *Store) Set(key string, value []byte) {
 	store.Lock()
 	defer store.Unlock()
 	store.store[key] = value
 }
 
-func (store *store) delete(key string) {
+func (store *Store) Delete(key string) {
 	store.Lock()
 	defer store.Unlock()
 	delete(store.store, key)
 }
 
-func (store *store) keys() []string {
+func (store *Store) Keys() []string {
 	keys := make([]string, len(store.store))
 	i := 0
 	store.RLock()
