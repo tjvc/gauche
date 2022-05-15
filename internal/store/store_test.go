@@ -1,34 +1,56 @@
 package store
 
 import (
+	"bytes"
+	"reflect"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestStoreSet(t *testing.T) {
 	store := New()
+
 	store.Set("key", []byte("value"))
 
-	value, _ := store.Get("key")
-	assert.Equal(t, []byte("value"), value)
+	got, present := store.Get("key")
+	want := []byte("value")
+	res := bytes.Compare(got, want)
+	if res != 0 {
+		t.Errorf("got %s, want %s", got, want)
+	}
+	if present != true {
+		t.Error("got false, want true")
+	}
 }
 
 func TestStoreGet(t *testing.T) {
 	store := New()
 	store.Set("key", []byte("value"))
 
-	value, present := store.Get("key")
-	assert.Equal(t, []byte("value"), value)
-	assert.True(t, present)
+	got, present := store.Get("key")
+
+	want := []byte("value")
+	res := bytes.Compare(got, want)
+	if res != 0 {
+		t.Errorf("got %s, want %s", got, want)
+	}
+	if present != true {
+		t.Error("got false, want true")
+	}
 }
 
 func TestStoreGetMissingKey(t *testing.T) {
 	store := New()
 
-	value, present := store.Get("key")
-	assert.Nil(t, value)
-	assert.False(t, present)
+	got, present := store.Get("key")
+
+	want := []byte(nil)
+	res := bytes.Compare(got, want)
+	if res != 0 {
+		t.Errorf("got %s, want %s", got, want)
+	}
+	if present != false {
+		t.Error("got true, want false")
+	}
 }
 
 func TestStoreDelete(t *testing.T) {
@@ -36,9 +58,16 @@ func TestStoreDelete(t *testing.T) {
 	store.Set("key", []byte("value"))
 
 	store.Delete("key")
-	value, present := store.Get("key")
-	assert.Nil(t, value)
-	assert.False(t, present)
+
+	got, present := store.Get("key")
+	want := []byte(nil)
+	res := bytes.Compare(got, want)
+	if res != 0 {
+		t.Errorf("got %s, want %s", got, want)
+	}
+	if present != false {
+		t.Error("got true, want false")
+	}
 }
 
 func TestStoreGetKeys(t *testing.T) {
@@ -46,6 +75,10 @@ func TestStoreGetKeys(t *testing.T) {
 	store.Set("key2", []byte("value2"))
 	store.Set("key1", []byte("value1"))
 
-	keys := store.Keys()
-	assert.Equal(t, []string{"key1", "key2"}, keys)
+	got := store.Keys()
+
+	want := []string{"key1", "key2"}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("got %s, want %s", got, want)
+	}
 }

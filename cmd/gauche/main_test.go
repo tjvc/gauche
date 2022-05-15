@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -8,7 +9,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/tjvc/gauche/internal/logging"
 	"github.com/tjvc/gauche/internal/store"
 )
@@ -22,11 +22,20 @@ func TestPut(t *testing.T) {
 
 	response, _ := http.DefaultClient.Do(req)
 
-	assert.Equal(t, 200, response.StatusCode)
+	if response.StatusCode != 200 {
+		t.Errorf("got %d, want %d", response.StatusCode, 200)
+	}
+	want := []byte("value")
 	body, _ := ioutil.ReadAll(response.Body)
-	assert.Equal(t, []byte("value"), body)
+	res := bytes.Compare(body, want)
+	if res != 0 {
+		t.Errorf("got %s, want %s", body, want)
+	}
 	value, _ := store.Get("key")
-	assert.Equal(t, []byte("value"), value)
+	res = bytes.Compare(value, want)
+	if res != 0 {
+		t.Errorf("got %s, want %s", value, want)
+	}
 }
 
 func TestGet(t *testing.T) {
@@ -39,9 +48,15 @@ func TestGet(t *testing.T) {
 
 	response, _ := http.DefaultClient.Do(req)
 
-	assert.Equal(t, 200, response.StatusCode)
+	if response.StatusCode != 200 {
+		t.Errorf("got %d, want %d", response.StatusCode, 200)
+	}
+	want := []byte("value")
 	body, _ := ioutil.ReadAll(response.Body)
-	assert.Equal(t, []byte("value"), body)
+	res := bytes.Compare(body, want)
+	if res != 0 {
+		t.Errorf("got %s, want %s", body, want)
+	}
 }
 
 func TestGetMissingKey(t *testing.T) {
@@ -53,7 +68,9 @@ func TestGetMissingKey(t *testing.T) {
 
 	response, _ := http.DefaultClient.Do(req)
 
-	assert.Equal(t, 404, response.StatusCode)
+	if response.StatusCode != 404 {
+		t.Errorf("got %d, want %d", response.StatusCode, 404)
+	}
 }
 
 func TestDelete(t *testing.T) {
@@ -66,9 +83,13 @@ func TestDelete(t *testing.T) {
 
 	response, _ := http.DefaultClient.Do(req)
 
-	assert.Equal(t, 204, response.StatusCode)
+	if response.StatusCode != 204 {
+		t.Errorf("got %d, want %d", response.StatusCode, 204)
+	}
 	_, present := store.Get("key")
-	assert.False(t, present)
+	if present != false {
+		t.Error("got true, want false")
+	}
 }
 
 func TestGetIndex(t *testing.T) {
@@ -81,9 +102,15 @@ func TestGetIndex(t *testing.T) {
 
 	response, _ := http.DefaultClient.Do(req)
 
-	assert.Equal(t, 200, response.StatusCode)
+	if response.StatusCode != 200 {
+		t.Errorf("got %d, want %d", response.StatusCode, 200)
+	}
+	want := []byte("key1\nkey2")
 	body, _ := ioutil.ReadAll(response.Body)
-	assert.Equal(t, []byte("key1\nkey2"), body)
+	res := bytes.Compare(body, want)
+	if res != 0 {
+		t.Errorf("got %s, want %s", body, want)
+	}
 }
 
 func TestInvalidMethod(t *testing.T) {
@@ -95,7 +122,9 @@ func TestInvalidMethod(t *testing.T) {
 
 	response, _ := http.DefaultClient.Do(req)
 
-	assert.Equal(t, 405, response.StatusCode)
+	if response.StatusCode != 405 {
+		t.Errorf("got %d, want %d", response.StatusCode, 405)
+	}
 }
 
 func TestPutMissingKey(t *testing.T) {
@@ -106,7 +135,9 @@ func TestPutMissingKey(t *testing.T) {
 
 	response, _ := http.DefaultClient.Do(req)
 
-	assert.Equal(t, 405, response.StatusCode)
+	if response.StatusCode != 405 {
+		t.Errorf("got %d, want %d", response.StatusCode, 405)
+	}
 }
 
 func buildServer(store *store.Store) *httptest.Server {
