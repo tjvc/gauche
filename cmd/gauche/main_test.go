@@ -154,6 +154,26 @@ func TestPutNilValue(t *testing.T) {
 	}
 }
 
+func TestMemLimit(t *testing.T) {
+	logger := nullLogger{}
+	store := store.New()
+	application := application{
+		store:    &store,
+		logger:   logger,
+		maxMemMB: 0,
+	}
+	server := httptest.NewServer(mainHandler(application))
+	defer server.Close()
+	url := fmt.Sprintf("%s/key", server.URL)
+	req, _ := http.NewRequest("PUT", url, strings.NewReader("value"))
+
+	response, _ := http.DefaultClient.Do(req)
+
+	if response.StatusCode != 500 {
+		t.Errorf("got %d, want %d", response.StatusCode, 500)
+	}
+}
+
 func buildServer(store *store.Store) *httptest.Server {
 	application := buildApplication(store)
 	server := httptest.NewServer(mainHandler(application))
@@ -164,8 +184,9 @@ func buildApplication(store *store.Store) application {
 	logger := nullLogger{}
 
 	return application{
-		store:  store,
-		logger: logger,
+		store:    store,
+		logger:   logger,
+		maxMemMB: 1024,
 	}
 }
 

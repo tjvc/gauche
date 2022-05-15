@@ -8,6 +8,7 @@ import (
 type Store struct {
 	sync.RWMutex
 	store map[string][]byte
+	Size  int
 }
 
 func New() Store {
@@ -27,6 +28,8 @@ func (store *Store) Set(key string, value []byte) {
 	store.Lock()
 	defer store.Unlock()
 	store.store[key] = value
+	store.Size += len(key)
+	store.Size += len(value)
 }
 
 func (store *Store) Delete(key string) {
