@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"io"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -23,9 +23,8 @@ func TestPut(t *testing.T) {
 	response, _ := http.DefaultClient.Do(req)
 
 	assert.Equal(t, 200, response.StatusCode)
-	buf := new(strings.Builder)
-	io.Copy(buf, response.Body)
-	assert.Equal(t, "value", buf.String())
+	body, _ := ioutil.ReadAll(response.Body)
+	assert.Equal(t, []byte("value"), body)
 	value, _ := store.Get("key")
 	assert.Equal(t, []byte("value"), value)
 }
@@ -41,9 +40,8 @@ func TestGet(t *testing.T) {
 	response, _ := http.DefaultClient.Do(req)
 
 	assert.Equal(t, 200, response.StatusCode)
-	buf := new(strings.Builder)
-	io.Copy(buf, response.Body)
-	assert.Equal(t, "value", buf.String())
+	body, _ := ioutil.ReadAll(response.Body)
+	assert.Equal(t, []byte("value"), body)
 }
 
 func TestGetMissingKey(t *testing.T) {
@@ -84,9 +82,8 @@ func TestGetIndex(t *testing.T) {
 	response, _ := http.DefaultClient.Do(req)
 
 	assert.Equal(t, 200, response.StatusCode)
-	buf := new(strings.Builder)
-	io.Copy(buf, response.Body)
-	assert.Equal(t, "key1\nkey2", buf.String())
+	body, _ := ioutil.ReadAll(response.Body)
+	assert.Equal(t, []byte("key1\nkey2"), body)
 }
 
 func TestInvalidMethod(t *testing.T) {
