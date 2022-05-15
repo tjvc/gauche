@@ -140,6 +140,20 @@ func TestPutMissingKey(t *testing.T) {
 	}
 }
 
+func TestPutNilValue(t *testing.T) {
+	store := store.New()
+	server := buildServer(&store)
+	defer server.Close()
+	url := fmt.Sprintf("%s/key", server.URL)
+	req, _ := http.NewRequest("PUT", url, nil)
+
+	response, _ := http.DefaultClient.Do(req)
+
+	if response.StatusCode != 422 {
+		t.Errorf("got %d, want %d", response.StatusCode, 422)
+	}
+}
+
 func buildServer(store *store.Store) *httptest.Server {
 	application := buildApplication(store)
 	server := httptest.NewServer(mainHandler(application))
