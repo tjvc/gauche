@@ -1,6 +1,7 @@
 # gauche
 
 [![tjvc](https://circleci.com/gh/tjvc/gauche.svg?style=shield)](https://circleci.com/gh/tjvc/gauche)
+[![Go Report Card](https://goreportcard.com/badge/github.com/tjvc/gauche)](https://goreportcard.com/report/github.com/tjvc/gauche)
 
 > gauche
 >
