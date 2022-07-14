@@ -92,6 +92,20 @@ func TestDelete(t *testing.T) {
 	}
 }
 
+func TestDeleteMissingKey(t *testing.T) {
+	store := store.New()
+	server := buildServer(&store)
+	defer server.Close()
+	url := fmt.Sprintf("%s/key", server.URL)
+	req, _ := http.NewRequest("DELETE", url, nil)
+
+	response, _ := http.DefaultClient.Do(req)
+
+	if response.StatusCode != 404 {
+		t.Errorf("got %d, want %d", response.StatusCode, 404)
+	}
+}
+
 func TestGetIndex(t *testing.T) {
 	store := store.New()
 	store.Set("key2", []byte("value2"))

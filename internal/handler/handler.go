@@ -36,8 +36,12 @@ func Get(w http.ResponseWriter, key string, store *store.Store) {
 }
 
 func Delete(w http.ResponseWriter, key string, store *store.Store) {
-	store.Delete(key)
-	w.WriteHeader(http.StatusNoContent)
+	if _, present := store.Get(key); present {
+		store.Delete(key)
+		w.WriteHeader(http.StatusNoContent)
+	} else {
+		w.WriteHeader(http.StatusNotFound)
+	}
 }
 
 func Index(w http.ResponseWriter, store *store.Store) {
