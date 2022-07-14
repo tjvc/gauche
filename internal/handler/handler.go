@@ -10,7 +10,11 @@ import (
 )
 
 func Put(w http.ResponseWriter, key string, r *http.Request, store *store.Store) {
-	value, _ := ioutil.ReadAll(r.Body)
+	value, err := ioutil.ReadAll(r.Body)
+
+	if err != nil {
+		panic(err)
+	}
 
 	if len(value) < 1 {
 		w.WriteHeader(http.StatusUnprocessableEntity)

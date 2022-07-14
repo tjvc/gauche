@@ -37,6 +37,12 @@ func (logger JSONLogger) Write(logEntry LogEntry) {
 		Latency:    logEntry.Latency.Microseconds(),
 	}
 
-	marshalledJSONLogEntry, _ := json.Marshal(jsonLogEntry)
+	marshalledJSONLogEntry, err := json.Marshal(jsonLogEntry)
+
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
 	fmt.Println(string(marshalledJSONLogEntry))
 }
