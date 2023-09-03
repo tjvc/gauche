@@ -2,16 +2,17 @@ package main
 
 import (
 	"net/http"
+	"os"
 
 	"github.com/tjvc/gauche/internal/handler"
-	"github.com/tjvc/gauche/internal/logging"
 	"github.com/tjvc/gauche/internal/middleware"
 	"github.com/tjvc/gauche/internal/store"
+	"golang.org/x/exp/slog"
 )
 
 type application struct {
 	store  *store.Store
-	logger logging.Logger
+	logger *slog.Logger
 }
 
 func mainHandler(application application) http.Handler {
@@ -47,11 +48,10 @@ func mainHandler(application application) http.Handler {
 
 func main() {
 	store := store.New()
-	logger := logging.JSONLogger{}
 
 	application := application{
 		store:  &store,
-		logger: logger,
+		logger: slog.New(slog.NewJSONHandler(os.Stdout, nil)),
 	}
 
 	http.ListenAndServe(":8080", mainHandler(application))

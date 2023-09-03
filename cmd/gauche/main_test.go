@@ -3,14 +3,15 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
-	"github.com/tjvc/gauche/internal/logging"
 	"github.com/tjvc/gauche/internal/store"
+	"golang.org/x/exp/slog"
 )
 
 func TestPut(t *testing.T) {
@@ -175,15 +176,8 @@ func buildServer(store *store.Store) *httptest.Server {
 }
 
 func buildApplication(store *store.Store) application {
-	logger := nullLogger{}
-
 	return application{
 		store:  store,
-		logger: logger,
+		logger: slog.New(slog.NewJSONHandler(io.Discard, nil)),
 	}
-}
-
-type nullLogger struct{}
-
-func (nullLogger) Write(logging.LogEntry) {
 }
