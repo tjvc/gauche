@@ -1,6 +1,6 @@
 # gauche
 
-[![tjvc](https://circleci.com/gh/tjvc/gauche.svg?style=shield)](https://circleci.com/gh/tjvc/gauche)
+![test](https://github.com/github/docs/actions/workflows/test.yml/badge.svg?branch=main)
 [![Go Report Card](https://goreportcard.com/badge/github.com/tjvc/gauche)](https://goreportcard.com/report/github.com/tjvc/gauche)
 
 > gauche
