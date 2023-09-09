@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -27,7 +26,7 @@ func TestPut(t *testing.T) {
 		t.Errorf("got %d, want %d", response.StatusCode, 200)
 	}
 	want := []byte("value")
-	body, _ := ioutil.ReadAll(response.Body)
+	body, _ := io.ReadAll(response.Body)
 	res := bytes.Compare(body, want)
 	if res != 0 {
 		t.Errorf("got %s, want %s", body, want)
@@ -53,7 +52,7 @@ func TestGet(t *testing.T) {
 		t.Errorf("got %d, want %d", response.StatusCode, 200)
 	}
 	want := []byte("value")
-	body, _ := ioutil.ReadAll(response.Body)
+	body, _ := io.ReadAll(response.Body)
 	res := bytes.Compare(body, want)
 	if res != 0 {
 		t.Errorf("got %s, want %s", body, want)
@@ -121,7 +120,7 @@ func TestGetIndex(t *testing.T) {
 		t.Errorf("got %d, want %d", response.StatusCode, 200)
 	}
 	want := []byte("key1\nkey2")
-	body, _ := ioutil.ReadAll(response.Body)
+	body, _ := io.ReadAll(response.Body)
 	res := bytes.Compare(body, want)
 	if res != 0 {
 		t.Errorf("got %s, want %s", body, want)

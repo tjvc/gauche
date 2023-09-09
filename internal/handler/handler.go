@@ -2,7 +2,7 @@ package handler
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 
@@ -10,7 +10,7 @@ import (
 )
 
 func Put(w http.ResponseWriter, key string, r *http.Request, store *store.Store) {
-	value, err := ioutil.ReadAll(r.Body)
+	value, err := io.ReadAll(r.Body)
 
 	if err != nil {
 		panic(err)
